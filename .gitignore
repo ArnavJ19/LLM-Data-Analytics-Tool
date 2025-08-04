@@ -1,0 +1,152 @@
+# Data Analytics Web Application .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+analytics-env/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# Operating System
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Streamlit
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# Application specific
+uploads/
+temp_files/
+*.log
+*.tmp
+
+# Sample datasets (optional - remove if you want to include them)
+# sample_datasets/
+
+# Configuration files with sensitive data
+config_local.py
+.env.local
+secrets.json
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Data files (uncomment if you don't want to track data files)
+# *.csv
+# *.xlsx
+# *.json
+# *.parquet
+
+# Model files and caches
+models/
+.cache/
+ollama_cache/
+
+# Logs and databases
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Documentation builds
+docs/_build/
+site/
+
+# Docker
+.dockerignore
+
+# GitHub
+.github/
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Windows
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*

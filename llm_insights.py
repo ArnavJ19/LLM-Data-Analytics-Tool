@@ -93,8 +93,23 @@ class LLMInsightGenerator:
             else:
                 logger.error(f"❌ OLLAMA server responded with status {response.status_code}")
                 return False
+        except requests.exceptions.Timeout:
+            logger.error(f"❌ Failed to connect to OLLAMA: Connection timed out")
+            return False
+        except requests.exceptions.ConnectionError:
+            logger.error(f"❌ Failed to connect to OLLAMA: Connection refused or server not running")
+            return False
         except Exception as e:
             logger.error(f"❌ Failed to connect to OLLAMA: {str(e)}")
+            return False
+            
+    def _check_server_health(self) -> bool:
+        """Check if OLLAMA server is healthy before making a request."""
+        try:
+            response = requests.get(f"{self.llm_config.base_url}/api/tags", timeout=5)
+            return response.status_code == 200
+        except Exception:
+            self.is_available = False
             return False
     
     def _generate_response(self, prompt: str, max_tokens: int = None) -> str:
@@ -110,6 +125,10 @@ class LLMInsightGenerator:
         """
         if not self.is_available:
             return "❌ OLLAMA is not available. Please ensure OLLAMA is running and the model is loaded."
+            
+        # Check server health before making request
+        if not self._check_server_health():
+            return "❌ OLLAMA server is not responding. Please check if the server is running properly."
         
         if max_tokens is None:
             max_tokens = self.llm_config.max_tokens
@@ -129,11 +148,26 @@ class LLMInsightGenerator:
                 }
             }
             
-            response = requests.post(
-                self.api_url,
-                json=payload,
-                timeout=self.llm_config.timeout
-            )
+            # Implement retry logic with exponential backoff
+            max_retries = 3
+            retry_delay = 2  # Initial delay in seconds
+            
+            for retry in range(max_retries):
+                try:
+                    response = requests.post(
+                        self.api_url,
+                        json=payload,
+                        timeout=self.llm_config.timeout
+                    )
+                    break  # Success, exit retry loop
+                except requests.exceptions.Timeout:
+                    if retry < max_retries - 1:  # Don't sleep on the last retry
+                        logger.warning(f"Request timed out, retrying ({retry+1}/{max_retries})")
+                        import time
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff
+                    else:
+                        raise  # Re-raise the last timeout exception
             
             if response.status_code == 200:
                 result = response.json()
@@ -142,6 +176,14 @@ class LLMInsightGenerator:
                 logger.error(f"OLLAMA API error: {response.status_code}")
                 return f"❌ API Error: {response.status_code}"
                 
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Timeout error connecting to OLLAMA: {str(e)}")
+            return f"❌ Timeout Error: The request to the LLM server timed out after {self.llm_config.timeout} seconds. Please ensure Ollama is running properly and not overloaded."
+        
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Connection error to OLLAMA: {str(e)}")
+            return f"❌ Connection Error: Could not connect to the LLM server at {self.llm_config.base_url}. Please ensure Ollama is running."
+        
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
             return f"❌ Error: {str(e)}"
@@ -192,6 +234,21 @@ class LLMInsightGenerator:
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
         missing_percentage = (df.isnull().sum().sum() / (num_rows * num_cols)) * 100
         
+        # Add data sample
+        data_sample = df.head(5).to_string()
+        
+        # Add unique values for categorical columns
+        categorical_values = {}
+        for col in categorical_cols:
+            unique_vals = df[col].dropna().unique().tolist()
+            if len(unique_vals) <= 20:  # Only include if not too many unique values
+                categorical_values[col] = unique_vals
+            else:
+                # For high cardinality columns, show a sample
+                categorical_values[col] = unique_vals[:20] + ["..."] 
+        
+        categorical_info = "\n".join([f"{col}: {vals}" for col, vals in categorical_values.items()])
+        
         prompt = self.prompt_templates.dataset_summary_prompt(
             num_rows=num_rows,
             num_cols=num_cols,
@@ -201,7 +258,19 @@ class LLMInsightGenerator:
             column_names=df.columns.tolist()
         )
         
-        return self._generate_response(prompt, max_tokens=300)
+        # Add data sample and categorical values to the prompt
+        prompt += f"""
+
+**Data Sample (First 5 rows):**
+{data_sample}
+
+**Unique Values in Categorical Columns:**
+{categorical_info}
+
+Make sure to reference the ACTUAL data values shown above in your analysis.
+"""
+        
+        return self._generate_response(prompt, max_tokens=400)
     
     def _generate_statistical_insights(self, df: pd.DataFrame, 
                                      eda_results: Dict[str, Any]) -> str:
@@ -389,12 +458,11 @@ class LLMInsightGenerator:
         Focus on practical recommendations in 150-200 words.
         """
         
-        return self._generate_response(prompt, max_tokens=300)
+        return self._generate_response(prompt, max_tokens=1000)
     
-    def answer_data_question(self, question: str, df: pd.DataFrame, 
-                           eda_results: Dict[str, Any]) -> str:
+    def answer_data_question(self, question: str, df: pd.DataFrame, eda_results: Dict[str, Any]) -> str:
         """
-        Answer a specific question about the data.
+        Answer a user's question about the data using the LLM.
         
         Args:
             question: User's question about the data
@@ -418,31 +486,37 @@ class LLMInsightGenerator:
         {question}
 
         **Instructions:**
-        1. Answer the question directly and specifically
-        2. Use concrete numbers and evidence from the data
-        3. Provide insights and implications
-        4. If the question cannot be fully answered with available data, explain what additional data would be needed
-        5. Keep the response focused and practical
+        1. Answer the question directly and specifically using the ACTUAL DATA provided in the context
+        2. ALWAYS refer to the specific data points shown in the data sample and unique values sections
+        3. Use concrete numbers, exact values, and specific examples from the dataset
+        4. NEVER make up or generalize data - only use what is explicitly shown in the context
+        5. If asked about specific items (like cities, products, categories), list the ACTUAL values from the dataset
+        6. If the question cannot be fully answered with available data, explain what additional data would be needed
+        7. Keep the response focused and practical
 
-        Provide a comprehensive but concise answer (150-250 words).
+        Provide a comprehensive but concise answer (150-250 words) that references SPECIFIC data points from the provided context.
         """
         
-        return self._generate_response(prompt, max_tokens=400)
+        return self._generate_response(prompt, max_tokens=500)
     
     def _prepare_data_context(self, df: pd.DataFrame, eda_results: Dict[str, Any]) -> str:
-        """Prepare a concise context about the dataset for question answering."""
+        """Prepare a comprehensive context about the dataset for question answering."""
         
         # Basic info
         num_rows, num_cols = df.shape
         numerical_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        datetime_cols = [col for col in df.columns if pd.api.types.is_datetime64_any_dtype(df[col])]
         
         # Key statistics
         context_parts = [
             f"Dataset: {num_rows:,} rows × {num_cols} columns",
-            f"Numerical columns: {', '.join(numerical_cols[:5])}{'...' if len(numerical_cols) > 5 else ''}",
-            f"Categorical columns: {', '.join(categorical_cols[:5])}{'...' if len(categorical_cols) > 5 else ''}"
+            f"Numerical columns: {', '.join(numerical_cols)}",
+            f"Categorical columns: {', '.join(categorical_cols)}"
         ]
+        
+        if datetime_cols:
+            context_parts.append(f"Datetime columns: {', '.join(datetime_cols)}")
         
         # Add summary statistics for numerical columns
         if not eda_results.get('numerical_summary', pd.DataFrame()).empty:
@@ -458,7 +532,30 @@ class LLMInsightGenerator:
         if missing_info.get('total_missing', 0) > 0:
             context_parts.append(f"Missing values: {missing_info['total_missing']} total")
         
-        return "; ".join(context_parts)
+        # Add actual data samples
+        context_parts.append("\n\nData Sample (first 10 rows):")
+        context_parts.append(df.head(10).to_string())
+        
+        # Add unique values for categorical columns (limited to avoid context explosion)
+        context_parts.append("\n\nUnique Values in Categorical Columns:")
+        for col in categorical_cols[:10]:  # Limit to first 10 categorical columns
+            unique_values = df[col].dropna().unique().tolist()
+            if len(unique_values) <= 50:  # Only include if not too many unique values
+                context_parts.append(f"{col}: {unique_values}")
+            else:
+                # For high cardinality columns, show a sample of unique values
+                context_parts.append(f"{col}: {unique_values[:50]} ... (and {len(unique_values)-50} more unique values)")
+        
+        # Add summary statistics in more detail
+        if not eda_results.get('numerical_summary', pd.DataFrame()).empty:
+            context_parts.append("\n\nNumerical Summary Statistics:")
+            context_parts.append(eda_results['numerical_summary'].to_string())
+        
+        if not eda_results.get('categorical_summary', pd.DataFrame()).empty:
+            context_parts.append("\n\nCategorical Summary Statistics:")
+            context_parts.append(eda_results['categorical_summary'].to_string())
+        
+        return "\n".join(context_parts)
     
     def generate_visualization_insights(self, visualization_type: str, 
                                       column_names: List[str], 

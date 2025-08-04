@@ -13,9 +13,9 @@ from typing import List, Dict, Any
 class LLMConfig:
     """Configuration for LLM integration."""
     # OLLAMA settings
-    model_name: str = "qwen2.5:7b"
+    model_name: str = "llama3.2:3b"
     base_url: str = "http://localhost:11434"
-    timeout: int = 120
+    timeout: int = 480
     max_tokens: int = 1000
     temperature: float = 0.7
     top_p: float = 0.9

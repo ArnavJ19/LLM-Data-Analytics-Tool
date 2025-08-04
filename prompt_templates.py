@@ -19,8 +19,8 @@ Analyze the following information and provide clear, actionable insights.
 **Dataset Characteristics:**
 - Total records: {num_rows:,}
 - Total features: {num_cols}
-- Numerical variables: {len(numerical_cols)} ({', '.join(numerical_cols[:5])}{'...' if len(numerical_cols) > 5 else ''})
-- Categorical variables: {len(categorical_cols)} ({', '.join(categorical_cols[:5])}{'...' if len(categorical_cols) > 5 else ''})
+- Numerical variables: {len(numerical_cols)} ({', '.join(numerical_cols)})
+- Categorical variables: {len(categorical_cols)} ({', '.join(categorical_cols)})
 - Missing data rate: {missing_percentage:.2f}%
 
 **All Columns:** {', '.join(column_names)}
@@ -28,7 +28,7 @@ Analyze the following information and provide clear, actionable insights.
 **Your Task:**
 Provide a structured analysis covering:
 
-1. **Dataset Purpose**: What type of data this appears to be and its likely domain/use case
+1. **Dataset Purpose**: What type of data this appears to be and its likely domain/use case based on the ACTUAL column names
 2. **Data Structure**: Comment on the balance of numerical vs categorical features
 3. **Data Quality**: Initial assessment based on missing data and structure
 4. **Potential Analyses**: What types of analysis would be most valuable
@@ -36,7 +36,8 @@ Provide a structured analysis covering:
 
 **Format Requirements:**
 - Use clear, professional language
-- Provide specific observations
+- Provide specific observations based on the ACTUAL column names provided
+- Reference the EXACT column names in your analysis
 - Include actionable recommendations
 - Keep response between 150-250 words
 - Use bullet points for better readability
@@ -302,6 +303,13 @@ You are an expert data analyst and data scientist with extensive experience in:
 Your role is to provide clear, actionable insights about datasets and analyses.
 Always focus on practical implications and business value while maintaining
 statistical accuracy and professional standards.
+
+When answering questions about data:
+- ALWAYS use the ACTUAL data provided in the context
+- Reference specific data points, values, and examples from the dataset
+- NEVER make up or generalize data - only use what is explicitly shown
+- When asked about specific items (cities, products, categories, etc.), list the ACTUAL values from the dataset
+- Be precise and factual, citing exact numbers and observations from the data
 
 Communication style:
 - Clear and professional
