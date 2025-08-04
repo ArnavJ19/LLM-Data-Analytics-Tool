@@ -1,10 +1,10 @@
-# 🤖 AI-Powered Data Analytics Tool
+# AI-Powered Data Analytics Tool
 
 A comprehensive data analytics web application that combines traditional statistical analysis with Large Language Model (LLM) powered insights and predictive analytics capabilities. Upload your dataset and get instant exploratory data analysis, visualizations, AI-generated insights, and predictive models!
 
-## ✨ Features
+##  Features
 
-### 🔧 Core Capabilities
+###  Core Capabilities
 - **Multi-format Data Upload**: Supports CSV, Excel (.xlsx, .xls), and JSON files
 - **Automatic EDA**: Comprehensive exploratory data analysis with statistical summaries
 - **Smart Visualizations**: Auto-generated interactive charts using Plotly
@@ -15,7 +15,7 @@ A comprehensive data analytics web application that combines traditional statist
 - **Interactive Chat**: Ask questions about your data in natural language
 - **Export Functionality**: Generate comprehensive reports in Markdown format
 
-### 📊 Analysis Features
+### Analysis Features
 - Statistical summaries (mean, median, mode, std, skewness, kurtosis)
 - Distribution analysis and normality testing
 - Correlation analysis with interactive heatmaps
@@ -28,7 +28,7 @@ A comprehensive data analytics web application that combines traditional statist
 - Model performance evaluation
 - Time series forecasting
 
-### 🎨 Visualization Types
+###  Visualization Types
 - **Distributions**: Histograms with KDE overlays
 - **Relationships**: Scatter plots, correlation heatmaps, scatter matrices
 - **Categorical**: Bar charts, box plots by category
@@ -39,7 +39,7 @@ A comprehensive data analytics web application that combines traditional statist
 - **Feature Importance**: Bar charts of feature importance
 - **Forecasts**: Time series forecast visualizations
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -111,7 +111,7 @@ seaborn>=0.12.0
 
 3. **Upload your dataset** and start exploring!
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 data-analytics-tool/
@@ -126,7 +126,7 @@ data-analytics-tool/
 └── README.md             # This file
 ```
 
-## 🎯 How to Use
+##  How to Use
 
 ### 1. Upload Your Data
 - Drag and drop or browse for your file (CSV, Excel, or JSON)
@@ -166,7 +166,7 @@ data-analytics-tool/
 - Download in Markdown format for documentation
 - Include all insights, visualizations, and recommendations
 
-## ⚙️ Configuration
+## Configuration
 
 ### OLLAMA Configuration
 The app connects to OLLAMA running on `http://localhost:11434` by default. To change this:
@@ -182,7 +182,7 @@ To use a different OLLAMA model:
 2. Update the `model_name` parameter in `llm_insights.py`
 3. Restart the application
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -213,7 +213,7 @@ To use a different OLLAMA model:
 - **Missing values**: High missing value percentages may affect analysis
 - **Text data**: Very long text fields may need preprocessing
 
-## 🎨 Customization
+## Customization
 
 ### Adding New Visualizations
 1. Open `visualizer.py`
@@ -230,7 +230,7 @@ To use a different OLLAMA model:
 2. Add custom CSS in the `st.markdown` sections
 3. Reorganize tabs and sections as desired
 
-## 📊 Example Use Cases
+## Example Use Cases
 
 ### Business Analytics
 - Customer behavior analysis
@@ -260,7 +260,7 @@ To use a different OLLAMA model:
 - Social media analytics
 - IoT sensor data exploration
 
-## 🤝 Contributing
+## Contributing
 
 This is a modular application designed for easy extension:
 
@@ -270,11 +270,11 @@ This is a modular application designed for easy extension:
 4. **Predictive Models**: Add new algorithms in `predictive_analytics.py`
 5. **Export Formats**: Add new export options in `utils.py`
 
-## 📄 License
+## License
 
 This project is open source and available under the MIT License.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Streamlit** for the amazing web app framework
 - **Plotly** for interactive visualizations
@@ -282,7 +282,7 @@ This project is open source and available under the MIT License.
 - **Qwen** for the powerful language model
 - **Pandas** and **NumPy** for data processing
 
-## 📞 Support
+## Support
 
 For issues and questions:
 1. Check the troubleshooting section above
@@ -291,5 +291,6 @@ For issues and questions:
 4. Test with sample datasets first
 
 ---
+
 
 **Happy Data Exploring! 🚀📊**
